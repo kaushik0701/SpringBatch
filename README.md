@@ -38,8 +38,18 @@ public class FileUploadResource {
     public Response uploadCustIndicatorsFile(@MultipartForm FormData formData) {
         try {
             fileUploadService.uploadCustIndicatorsFile(formData.file);
-           
+            return Response.ok("Customer Indicators file processed successfully").build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("File processing failed").build();
+        }
+    }
 
+    public static class FormData {
+        @RestForm("file")
+        public InputStream file;
+    }
+}
 
 Let's build the Quarkus application according to your structure and requirements. We'll create a full example including the necessary classes and explanations.
 
