@@ -1,3 +1,46 @@
+package com.sc.faas.resource;
+
+import com.sc.faas.service.FileUploadService;
+
+import org.jboss.resteasy.reactive.MultipartForm;
+import org.jboss.resteasy.reactive.RestForm;
+
+import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+
+@Path("/upload")
+public class FileUploadResource {
+
+    @Inject
+    FileUploadService fileUploadService;
+
+    @POST
+    @Path("/application-status")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response uploadApplicationStatusFile(@MultipartForm FormData formData) {
+        try {
+            fileUploadService.uploadApplicationStatusFile(formData.file);
+            return Response.ok("Application Status file processed successfully").build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("File processing failed").build();
+        }
+    }
+
+    @POST
+    @Path("/cust-indicators")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response uploadCustIndicatorsFile(@MultipartForm FormData formData) {
+        try {
+            fileUploadService.uploadCustIndicatorsFile(formData.file);
+           
+
+
 Let's build the Quarkus application according to your structure and requirements. We'll create a full example including the necessary classes and explanations.
 
 1. Folder Structure Overview
