@@ -1,39 +1,76 @@
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package com.ivrapi.controller;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.ivrapi.dto.StatusDto;
+import com.ivrapi.service.CustIndicatorService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-public class CsvParser {
-    private static final Logger Logger = LoggerFactory.getLogger(CsvParser.class);
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-    public List<Map<String, String>> parseCsv(File file) {
-        List<Map<String, String>> recordsList = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String headerLine = reader.readLine();
-            if (headerLine == null) {
-                return recordsList;
-            }
+@WebMvcTest(CustIndicatorController.class)
+public class CustIndicatorControllerTest {
 
-            String[] headers = headerLine.split(",");
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] values = line.split(",");
-                Map<String, String> record = new HashMap<>();
-                for (int i = 0; i < headers.length; i++) {
-                    record.put(headers[i], values[i]);
-                }
-                recordsList.add(record);
-            }
-        } catch (IOException e) {
-            Logger.error("Error reading CSV file: " + e.getMessage(), e);
-        }
-        return recordsList;
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private CustIndicatorService custIndicatorService;
+
+    @BeforeEach
+    public void setup() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    public void testFetchDataWithTransferExclusion() throws Exception {
+        String relId = "123";
+        String expectedResponse = "transferExclusionResponse";
+        when(custIndicatorService.fetchTransferExclusion(anyString())).thenReturn(expectedResponse);
+
+        mockMvc.perform(post("/custIndicator/transferExclusion")
+                .param("relId", relId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(expectedResponse));
+    }
+
+    @Test
+    public void testFetchDataWithSensitiveCustomer() throws Exception {
+        String relId = "123";
+        String expectedResponse = "sensitiveCustomerResponse";
+        when(custIndicatorService.fetchDataWithSensitiveCustomer(anyString())).thenReturn(expectedResponse);
+
+        mockMvc.perform(post("/custIndicator/sensitiveCustomer")
+                .param("relId", relId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(expectedResponse));
+    }
+
+    @Test
+    public void testFetchDataWithKycDeficient() throws Exception {
+        String relId = "123";
+        String expectedResponse = "kycDeficientResponse";
+        when(custIndicatorService.fetchDataWithKycDeficient(anyString())).thenReturn(expectedResponse);
+
+        mockMvc.perform(post("/custIndicator/kycDeficient")
+                .param("relId", relId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(expectedResponse));
     }
 }
