@@ -1,45 +1,38 @@
+package com.ivrapi.controller;
+
+import com.ivrapi.service.RepeatCallerService;
+import com.ivrapi.dto.StatusDto;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.lang.reflect.Field;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class ObjektutilsTest {
+@SpringBootTest
+public class RepeatCallerControllerTest {
 
-    @Test
-    void testIsObjectEmpty_withNull() {
-        assertTrue(Objektutils.isObjectEmpty(null));
-    }
+    @Autowired
+    private MockMvc mockMvc;
 
-    @Test
-    void testIsObjectEmpty_withEmptyObject() {
-        class TestObject {
-            private String field1 = "";
-            private Integer field2 = null;
-        }
-
-        TestObject obj = new TestObject();
-        assertTrue(Objektutils.isObjectEmpty(obj));
-    }
+    @Autowired
+    private RepeatCallerService repeatCallerService;
 
     @Test
-    void testIsObjectEmpty_withNonEmptyStringField() {
-        class TestObject {
-            private String field1 = "not empty";
-            private Integer field2 = null;
-        }
+    public void testGetRepeatCaller() throws Exception {
+        // Assuming findByXRelId method returns "active" for the given relId "12345"
+        String relId = "12345";
+        String expectedResponse = "{\"status\":\"active\"}";
 
-        TestObject obj = new TestObject();
-        assertFalse(Objektutils.isObjectEmpty(obj));
-    }
-
-    @Test
-    void testIsObjectEmpty_withNonStringField() {
-        class TestObject {
-            private String field1 = "";
-            private Integer field2 = 1;
-        }
-
-        TestObject obj = new TestObject();
-        assertFalse(Objektutils.isObjectEmpty(obj));
+        mockMvc.perform(MockMvcRequestBuilders.post("/repeatCaller/getRepeatStatus")
+                        .param("relId", relId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(expectedResponse));
     }
 }
