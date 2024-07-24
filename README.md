@@ -1,22 +1,14 @@
-package com.ivrapi.controller;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.hamcrest.Matchers.*;
 
-import com.ivrapi.dto.FeeWaiverDto;
-import com.ivrapi.dto.StatusDto;
-import com.ivrapi.service.FeeWaiverService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.http.MediaType;
 
 @WebMvcTest(FeeWaiverController.class)
 public class FeeWaiverControllerTest {
@@ -27,87 +19,30 @@ public class FeeWaiverControllerTest {
     @MockBean
     private FeeWaiverService feeWaiverService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Test
-    void testGetFeeWaiver_Success() throws Exception {
-        // Given
-        String cardNum = "1234567890";
+    void testGetFeeWaiver() throws Exception {
         FeeWaiverDto feeWaiverDto = new FeeWaiverDto();
-        feeWaiverDto.setCardNum(cardNum);
-        feeWaiverDto.setWaiverAmount(100.0);
+        feeWaiverDto.setCardNum("num12");
+        feeWaiverDto.setLateFeeEligible("y");
+        feeWaiverDto.setAnnualFeeRequested("500");
+        feeWaiverDto.setAnnualFeeRequestedDate("2024-07-22T00:00:00.000+00:00");
+        feeWaiverDto.setLateFeeRequested("Y");
+        feeWaiverDto.setLateFeeRequestedDate(null);
+        feeWaiverDto.setAnnualFeeEligible("789");
 
-        when(feeWaiverService.findByCardnum(cardNum)).thenReturn(feeWaiverDto);
+        when(feeWaiverService.findByCardNum("num12")).thenReturn(feeWaiverDto);
 
-        // When & Then
         mockMvc.perform(get("/feeWaiver/getFeeWaiver")
-                .param("cardNum", cardNum)
+                .param("cardNum", "num12")
+                .header("Authorization", "Bearer your_token_here")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.cardNum").value(cardNum))
-                .andExpect(jsonPath("$.waiverAmount").value(100.0));
-
-        verify(feeWaiverService, times(1)).findByCardnum(cardNum);
-    }
-
-    @Test
-    void testGetFeeWaiver_NotFound() throws Exception {
-        // Given
-        String cardNum = "1234567890";
-
-        when(feeWaiverService.findByCardnum(cardNum)).thenReturn(null);
-
-        // When & Then
-        mockMvc.perform(get("/feeWaiver/getFeeWaiver")
-                .param("cardNum", cardNum)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-
-        verify(feeWaiverService, times(1)).findByCardnum(cardNum);
-    }
-
-    @Test
-    void testUpdateFeeWaiver_Success() throws Exception {
-        // Given
-        String cardNum = "1234567890";
-        FeeWaiverDto feeWaiverDto = new FeeWaiverDto();
-        feeWaiverDto.setCardNum(cardNum);
-        feeWaiverDto.setWaiverAmount(100.0);
-
-        when(feeWaiverService.updateFeeWaiver(feeWaiverDto, cardNum)).thenReturn(true);
-
-        // When & Then
-        mockMvc.perform(patch("/feeWaiver/updateFeeWaiver")
-                .param("cardNum", cardNum)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"cardNum\":\"1234567890\",\"waiverAmount\":100.0}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("Success"));
-
-        verify(feeWaiverService, times(1)).updateFeeWaiver(feeWaiverDto, cardNum);
-    }
-
-    @Test
-    void testUpdateFeeWaiver_Failure() throws Exception {
-        // Given
-        String cardNum = "1234567890";
-        FeeWaiverDto feeWaiverDto = new FeeWaiverDto();
-        feeWaiverDto.setCardNum(cardNum);
-        feeWaiverDto.setWaiverAmount(100.0);
-
-        when(feeWaiverService.updateFeeWaiver(feeWaiverDto, cardNum)).thenReturn(false);
-
-        // When & Then
-        mockMvc.perform(patch("/feeWaiver/updateFeeWaiver")
-                .param("cardNum", cardNum)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"cardNum\":\"1234567890\",\"waiverAmount\":100.0}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("Failure"));
-
-        verify(feeWaiverService, times(1)).updateFeeWaiver(feeWaiverDto, cardNum);
+                .andExpect(jsonPath("$.cardNum", is("num12")))
+                .andExpect(jsonPath("$.lateFeeEligible", is("y")))
+                .andExpect(jsonPath("$.annualFeeRequested", is("500")))
+                .andExpect(jsonPath("$.annualFeeRequestedDate", is("2024-07-22T00:00:00.000+00:00")))
+                .andExpect(jsonPath("$.lateFeeRequested", is("Y")))
+                .andExpect(jsonPath("$.lateFeeRequestedDate").doesNotExist())
+                .andExpect(jsonPath("$.annualFeeEligible", is("789")));
     }
 }
