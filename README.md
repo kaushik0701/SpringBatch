@@ -3,61 +3,107 @@ package com.ivrapi.controller;
 import com.ivrapi.dto.PreferredLanguageDto;
 import com.ivrapi.dto.StatusDto;
 import com.ivrapi.service.PreferredLanguageService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PreferredLanguageControllerTest {
 
-    @LocalServerPort
-    private int port;
+    private MockMvc mockMvc;
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+    @Mock
+    private PreferredLanguageService preferredLanguageService;
 
-    @Test
-    public void testGetPreferredLanguageByRelId() {
-        String relId = "C01";
-        String url = "http://localhost:" + port + "/preferredLanguage/getLanguage?relId=" + relId;
+    @InjectMocks
+    private PreferredLanguageController preferredLanguageController;
 
-        ResponseEntity<PreferredLanguageDto> response = restTemplate.postForEntity(url, null, PreferredLanguageDto.class);
-
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isNotNull();
-        // Add additional assertions based on your expected response
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        mockMvc = MockMvcBuilders.standaloneSetup(preferredLanguageController).build();
     }
 
     @Test
-    public void testInsertPreferredLanguage() {
-        String url = "http://localhost:" + port + "/preferredLanguage/saveLang";
+    void testGetPreferredLanguageByRelId_Success() throws Exception {
+        // Given
+        String relId = "12345";
+        PreferredLanguageDto preferredLang = new PreferredLanguageDto();
+        preferredLang.setRelId(relId);
+        preferredLang.setLangCd("EN");
+
+        when(preferredLanguageService.getPreferredLanguageByRelId(relId)).thenReturn(preferredLang);
+
+        // When & Then
+        mockMvc.perform(post("/preferredLanguage/getLanguage")
+                .param("relId", relId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.relId").value(relId))
+                .andExpect(jsonPath("$.langCd").value("EN"));
+
+        verify(preferredLanguageService, times(1)).getPreferredLanguageByRelId(relId);
+    }
+
+    @Test
+    void testGetPreferredLanguageByRelId_NotFound() throws Exception {
+        // Given
+        String relId = "12345";
+
+        when(preferredLanguageService.getPreferredLanguageByRelId(relId)).thenReturn(null);
+
+        // When & Then
+        mockMvc.perform(post("/preferredLanguage/getLanguage")
+                .param("relId", relId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        verify(preferredLanguageService, times(1)).getPreferredLanguageByRelId(relId);
+    }
+
+    @Test
+    void testInsertPreferredLanguage_Success() throws Exception {
+        // Given
         PreferredLanguageDto preferredLanguage = new PreferredLanguageDto();
-        // Set fields for preferredLanguage based on your DTO definition
-        HttpEntity<PreferredLanguageDto> request = new HttpEntity<>(preferredLanguage);
+        preferredLanguage.setRelId("12345");
+        preferredLanguage.setLangCd("EN");
+        String response = "Success";
 
-        ResponseEntity<StatusDto> response = restTemplate.postForEntity(url, request, StatusDto.class);
+        when(preferredLanguageService.insertPreferredLanguage(preferredLanguage)).thenReturn(response);
 
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getStatus()).isEqualTo("ExpectedStatus"); // Adjust based on your service logic
+        // When & Then
+        mockMvc.perform(post("/preferredLanguage/saveLang")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"relId\":\"12345\",\"langCd\":\"EN\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(response));
+
+        verify(preferredLanguageService, times(1)).insertPreferredLanguage(preferredLanguage);
     }
 
     @Test
-    public void testDeletePreferredLanguageByRelId() {
-        String relId = "C01";
-        String url = "http://localhost:" + port + "/preferredLanguage/delete?relId=" + relId;
+    void testDeletePreferredLanguageByRelId_Success() throws Exception {
+        // Given
+        String relId = "12345";
+        String response = "Deleted";
 
-        ResponseEntity<StatusDto> response = restTemplate.exchange(url, HttpMethod.DELETE, null, StatusDto.class);
+        when(preferredLanguageService.deletePreferredLanguageByRelId(relId)).thenReturn(response);
 
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getStatus()).isEqualTo("ExpectedStatus"); // Adjust based on your service logic
+        // When & Then
+        mockMvc.perform(delete("/preferredLanguage/delete")
+                .param("relId", relId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(response));
+
+        verify(preferredLanguageService, times(1)).deletePreferredLanguageByRelId(relId);
     }
 }
