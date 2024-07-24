@@ -1,8 +1,8 @@
 package com.ivrapi.controller;
 
-import com.ivrapi.dto.PreferredLanguageDto;
+import com.ivrapi.dto.NtbCallBackDto;
 import com.ivrapi.dto.StatusDto;
-import com.ivrapi.service.PreferredLanguageService;
+import com.ivrapi.service.NtbCallbackService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -13,97 +13,61 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class PreferredLanguageControllerTest {
+public class NtbCallbackControllerTest {
 
     private MockMvc mockMvc;
 
     @Mock
-    private PreferredLanguageService preferredLanguageService;
+    private NtbCallbackService ntbCallbackService;
 
     @InjectMocks
-    private PreferredLanguageController preferredLanguageController;
+    private NtbCallbackController ntbCallbackController;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(preferredLanguageController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(ntbCallbackController).build();
     }
 
     @Test
-    void testGetPreferredLanguageByRelId_Success() throws Exception {
+    void testInsertNtbCallBack_Success() throws Exception {
         // Given
-        String relId = "12345";
-        PreferredLanguageDto preferredLang = new PreferredLanguageDto();
-        preferredLang.setRelId(relId);
-        preferredLang.setLangCd("EN");
+        NtbCallBackDto ntbCallBackDto = new NtbCallBackDto();
+        ntbCallBackDto.setSomeField("value"); // Set the necessary fields in NtbCallBackDto
+        Boolean created = true;
 
-        when(preferredLanguageService.getPreferredLanguageByRelId(relId)).thenReturn(preferredLang);
+        when(ntbCallbackService.insertNtbCallBack(ntbCallBackDto)).thenReturn(created);
 
         // When & Then
-        mockMvc.perform(post("/preferredLanguage/getLanguage")
-                .param("relId", relId)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.relId").value(relId))
-                .andExpect(jsonPath("$.langCd").value("EN"));
-
-        verify(preferredLanguageService, times(1)).getPreferredLanguageByRelId(relId);
-    }
-
-    @Test
-    void testGetPreferredLanguageByRelId_NotFound() throws Exception {
-        // Given
-        String relId = "12345";
-
-        when(preferredLanguageService.getPreferredLanguageByRelId(relId)).thenReturn(null);
-
-        // When & Then
-        mockMvc.perform(post("/preferredLanguage/getLanguage")
-                .param("relId", relId)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-
-        verify(preferredLanguageService, times(1)).getPreferredLanguageByRelId(relId);
-    }
-
-    @Test
-    void testInsertPreferredLanguage_Success() throws Exception {
-        // Given
-        PreferredLanguageDto preferredLanguage = new PreferredLanguageDto();
-        preferredLanguage.setRelId("12345");
-        preferredLanguage.setLangCd("EN");
-        String response = "Success";
-
-        when(preferredLanguageService.insertPreferredLanguage(preferredLanguage)).thenReturn(response);
-
-        // When & Then
-        mockMvc.perform(post("/preferredLanguage/saveLang")
+        mockMvc.perform(post("/insertCallBack")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"relId\":\"12345\",\"langCd\":\"EN\"}"))
+                .content("{\"someField\":\"value\"}")) // Adjust the JSON content to match the NtbCallBackDto structure
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value(response));
+                .andExpect(jsonPath("$.status").value("Success"));
 
-        verify(preferredLanguageService, times(1)).insertPreferredLanguage(preferredLanguage);
+        verify(ntbCallbackService, times(1)).insertNtbCallBack(ntbCallBackDto);
     }
 
     @Test
-    void testDeletePreferredLanguageByRelId_Success() throws Exception {
+    void testInsertNtbCallBack_Failure() throws Exception {
         // Given
-        String relId = "12345";
-        String response = "Deleted";
+        NtbCallBackDto ntbCallBackDto = new NtbCallBackDto();
+        ntbCallBackDto.setSomeField("value"); // Set the necessary fields in NtbCallBackDto
+        Boolean created = false;
 
-        when(preferredLanguageService.deletePreferredLanguageByRelId(relId)).thenReturn(response);
+        when(ntbCallbackService.insertNtbCallBack(ntbCallBackDto)).thenReturn(created);
 
         // When & Then
-        mockMvc.perform(delete("/preferredLanguage/delete")
-                .param("relId", relId)
-                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(post("/insertCallBack")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"someField\":\"value\"}")) // Adjust the JSON content to match the NtbCallBackDto structure
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value(response));
+                .andExpect(jsonPath("$.status").value("Failure"));
 
-        verify(preferredLanguageService, times(1)).deletePreferredLanguageByRelId(relId);
+        verify(ntbCallbackService, times(1)).insertNtbCallBack(ntbCallBackDto);
     }
 }
