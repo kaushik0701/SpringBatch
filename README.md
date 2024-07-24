@@ -12,6 +12,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.Date;
+
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -37,7 +39,13 @@ public class NtbCallbackControllerTest {
     void testInsertNtbCallBack_Success() throws Exception {
         // Given
         NtbCallBackDto ntbCallBackDto = new NtbCallBackDto();
-        ntbCallBackDto.setSomeField("value"); // Set the necessary fields in NtbCallBackDto
+        ntbCallBackDto.setCli("1234567890");
+        ntbCallBackDto.setNtbMenu("Menu1");
+        ntbCallBackDto.setCallBackNumber("0987654321");
+        ntbCallBackDto.setSmsTriggered("Yes");
+        ntbCallBackDto.setInteractionId("INT12345");
+        ntbCallBackDto.setDnis(123456789L);
+        ntbCallBackDto.setCallDateTime(new Date());
         Boolean created = true;
 
         when(ntbCallbackService.insertNtbCallBack(ntbCallBackDto)).thenReturn(created);
@@ -45,7 +53,7 @@ public class NtbCallbackControllerTest {
         // When & Then
         mockMvc.perform(post("/insertCallBack")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"someField\":\"value\"}")) // Adjust the JSON content to match the NtbCallBackDto structure
+                .content("{\"cli\":\"1234567890\",\"ntbMenu\":\"Menu1\",\"callBackNumber\":\"0987654321\",\"smsTriggered\":\"Yes\",\"interactionId\":\"INT12345\",\"dnis\":123456789,\"callDateTime\":\"2024-07-24T10:15:30.000+00:00\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("Success"));
 
@@ -56,7 +64,13 @@ public class NtbCallbackControllerTest {
     void testInsertNtbCallBack_Failure() throws Exception {
         // Given
         NtbCallBackDto ntbCallBackDto = new NtbCallBackDto();
-        ntbCallBackDto.setSomeField("value"); // Set the necessary fields in NtbCallBackDto
+        ntbCallBackDto.setCli("1234567890");
+        ntbCallBackDto.setNtbMenu("Menu1");
+        ntbCallBackDto.setCallBackNumber("0987654321");
+        ntbCallBackDto.setSmsTriggered("Yes");
+        ntbCallBackDto.setInteractionId("INT12345");
+        ntbCallBackDto.setDnis(123456789L);
+        ntbCallBackDto.setCallDateTime(new Date());
         Boolean created = false;
 
         when(ntbCallbackService.insertNtbCallBack(ntbCallBackDto)).thenReturn(created);
@@ -64,7 +78,7 @@ public class NtbCallbackControllerTest {
         // When & Then
         mockMvc.perform(post("/insertCallBack")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"someField\":\"value\"}")) // Adjust the JSON content to match the NtbCallBackDto structure
+                .content("{\"cli\":\"1234567890\",\"ntbMenu\":\"Menu1\",\"callBackNumber\":\"0987654321\",\"smsTriggered\":\"Yes\",\"interactionId\":\"INT12345\",\"dnis\":123456789,\"callDateTime\":\"2024-07-24T10:15:30.000+00:00\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("Failure"));
 
