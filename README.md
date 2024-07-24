@@ -1,70 +1,63 @@
 package com.ivrapi.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.mockito.Mockito.*;
-
-import com.ivrapi.service.RepeatCallerService;
+import com.ivrapi.dto.PreferredLanguageDto;
 import com.ivrapi.dto.StatusDto;
-import org.junit.jupiter.api.BeforeEach;
+import com.ivrapi.service.PreferredLanguageService;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 
-public class RepeatCallerControllerTest {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    private MockMvc mockMvc;
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class PreferredLanguageControllerTest {
 
-    @Mock
-    private RepeatCallerService repeatCallerService;
+    @LocalServerPort
+    private int port;
 
-    @InjectMocks
-    private RepeatCallerController repeatCallerController;
+    @Autowired
+    private TestRestTemplate restTemplate;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(repeatCallerController).build();
+    @Test
+    public void testGetPreferredLanguageByRelId() {
+        String relId = "C01";
+        String url = "http://localhost:" + port + "/preferredLanguage/getLanguage?relId=" + relId;
+
+        ResponseEntity<PreferredLanguageDto> response = restTemplate.postForEntity(url, null, PreferredLanguageDto.class);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        // Add additional assertions based on your expected response
     }
 
     @Test
-    void testGetRepeatCaller_Success() throws Exception {
-        // Given
-        String relId = "12345";
-        String repeatStatus = "repeat";
+    public void testInsertPreferredLanguage() {
+        String url = "http://localhost:" + port + "/preferredLanguage/saveLang";
+        PreferredLanguageDto preferredLanguage = new PreferredLanguageDto();
+        // Set fields for preferredLanguage based on your DTO definition
+        HttpEntity<PreferredLanguageDto> request = new HttpEntity<>(preferredLanguage);
 
-        when(repeatCallerService.findByXRelId(relId)).thenReturn(repeatStatus);
+        ResponseEntity<StatusDto> response = restTemplate.postForEntity(url, request, StatusDto.class);
 
-        // When & Then
-        mockMvc.perform(post("/repeatCaller/getRepeatStatus")
-                .param("relId", relId)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value(repeatStatus));
-
-        verify(repeatCallerService, times(1)).findByXRelId(relId);
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getStatus()).isEqualTo("ExpectedStatus"); // Adjust based on your service logic
     }
 
     @Test
-    void testGetRepeatCaller_NotFound() throws Exception {
-        // Given
-        String relId = "12345";
-        String repeatStatus = null;
+    public void testDeletePreferredLanguageByRelId() {
+        String relId = "C01";
+        String url = "http://localhost:" + port + "/preferredLanguage/delete?relId=" + relId;
 
-        when(repeatCallerService.findByXRelId(relId)).thenReturn(repeatStatus);
+        ResponseEntity<StatusDto> response = restTemplate.exchange(url, HttpMethod.DELETE, null, StatusDto.class);
 
-        // When & Then
-        mockMvc.perform(post("/repeatCaller/getRepeatStatus")
-                .param("relId", relId)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").isEmpty());
-
-        verify(repeatCallerService, times(1)).findByXRelId(relId);
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getStatus()).isEqualTo("ExpectedStatus"); // Adjust based on your service logic
     }
 }
