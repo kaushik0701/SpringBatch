@@ -2,47 +2,42 @@ package com.ivrapi.controller;
 
 import com.ivrapi.service.RepeatCallerService;
 import com.ivrapi.dto.StatusDto;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@SpringBootTest
-@WebMvcTest(RepeatCallerController.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 public class RepeatCallerControllerTest {
 
+    @LocalServerPort
+    private int port;
+
     @Autowired
-    private MockMvc mockMvc;
+    private TestRestTemplate restTemplate;
 
     @Autowired
     private RepeatCallerService repeatCallerService;
 
-    @BeforeEach
-    void setUp() {
-        // Set up any required data here
-        // repeatCallerService.save(new RepeatCaller(...));
-    }
-
     @Test
-    void testGetRepeatCaller() throws Exception {
-        String relId = "12345";
-        String expectedStatus = "someStatus";
-        
-        // Assuming the findByXRelId method sets up necessary data.
-        // repeatCallerService.findByXRelId(relId);
+    public void testGetRepeatCaller() {
+        String relId = "C01"; // sample relId
+        String url = "http://localhost:" + port + "/repeatCaller/getRepeatStatus?relId=" + relId;
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/repeatCaller/getRepeatStatus")
-                .param("relId", relId)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status", is(expectedStatus)));
+        ResponseEntity<StatusDto> responseEntity = restTemplate.postForEntity(url, null, StatusDto.class);
+        
+        assertNotNull(responseEntity);
+        assertEquals(200, responseEntity.getStatusCodeValue());
+
+        StatusDto responseBody = responseEntity.getBody();
+        assertNotNull(responseBody);
+        assertEquals("YES", responseBody.getStatus()); // Assuming "YES" is the expected response for relId "C01"
     }
 }
